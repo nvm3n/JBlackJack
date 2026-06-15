@@ -17,10 +17,25 @@ public class BlackJClient {
     // Gamestate, viel Spaß!
     // MFG Lorentz
 
+
     GameState gameState;
-    GameClient<GameState, String> gameClient;
+    ClientConnection<GameState, String> gameClient;
+
+    public boolean hiddenCard;
+    public ArrayList<Card> dHand;
+    public int dSum;
+    public int dAceCount;
 
     String playerName;
+
+    private Player self;
+
+    public class Player {
+        public String name;
+        public ArrayList<Card> pHand;
+        public int self.pSum;
+        public int pAceCount;
+    }
 
     // game window
     int boardWidth = 600;
@@ -68,19 +83,19 @@ public class BlackJClient {
 
                 if (!standButton.isEnabled()) {
                     dSum = dsumreduce();
-                    pSum = psumreduce();
+                    self.self.pSum = self.psumreduce();
                     System.out.println("stand: ");
                     System.out.println(dSum);
-                    System.out.println(pSum);
+                    System.out.println(self.self.pSum);
 
                     String message = "";
-                    if (pSum > 21) {
+                    if (self.pSum > 21) {
                         message = "Dealer wins";
                     } else if (dSum > 21) {
                         message = "Player wins";
-                    } else if (pSum == dSum) {
+                    } else if (self.pSum == dSum) {
                         message = "Push";
-                    } else if (pSum > dSum) {
+                    } else if (self.pSum > dSum) {
                         message = "Player wins";
                     } else {
                         message = "Dealer wins";
@@ -101,8 +116,8 @@ public class BlackJClient {
     JButton standButton = new JButton("Stand");
     JButton nextButton = new JButton("Next Hand");
 
-    BlackJClient(String ServerIP, int Port) {
-        gameClient = new GameClient<GameState, String>(ServerIP, Port,
+    public BlackJClient(String ServerIP, int Port) {
+        gameClient = new ClientConnection<GameState, String>(ServerIP, Port,
                 (String state) -> GameState.convertFromString(state), (String s) -> s);
 
         frame.setVisible(true);
@@ -162,32 +177,21 @@ public class BlackJClient {
         nextButton.setEnabled(true);
         nextButton.setVisible(true);
 
-        while (dSum < 17) {
-            Card card = deck.remove(deck.size() - 1);
-            dSum += card.getValue();
-            dAceCount += card.isAce() ? 1 : 0;
-            dHand.add(card);
-        }
+        //TODO: implement client sending stand to server and waiting for response
 
         gamePanel.repaint();
     }
 
     public void hit() {
         System.out.println("clientplayer hit");
-        Card card = deck.remove(deck.size() - 1);
-        pSum += card.getValue();
-        pAceCount += card.isAce() ? 1 : 0;
-        pHand.add(card);
-        if (psumreduce() > 21) {
-            System.out.println("pSum: " + pSum);
-            stand();
-        }
+        
+        //TODO: implement client sending hit to server and waiting for response
 
         gamePanel.repaint();
     }
 
     public void next() {
-        pHand.clear();
+        self.pHand.clear();
         dHand.clear();
         gamePanel.repaint();
         hitButton.setEnabled(true);

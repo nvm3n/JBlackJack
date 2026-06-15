@@ -13,13 +13,13 @@ public class GameState {
     public ArrayList<Player> players;
 
     public class Player {
-        String name;
-        ArrayList<Card> pHand;
-        int pSum;
-        int pAceCount;
+        public String name;
+        public ArrayList<Card> pHand;
+        public int pSum;
+        public int pAceCount;
     }
 
-    GameState() {
+    public GameState() {
 
     }
 

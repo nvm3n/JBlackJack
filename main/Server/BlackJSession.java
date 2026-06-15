@@ -1,4 +1,4 @@
-package main.Client;
+package main.Server;
 import main.Shared.*;
 import java.util.ArrayList;
 import java.util.Random;

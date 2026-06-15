@@ -3,7 +3,7 @@ import main.Shared.*;
 import java.util.ArrayList;
 import java.util.function.*;
 
-public class GameServer<T, R> extends Server {
+public class ServerConnector<T, R> extends ServerConnection {
 
     private ArrayList<String> clientIPs;
     private ArrayList<Integer> clientPorts;
@@ -12,7 +12,7 @@ public class GameServer<T, R> extends Server {
     private Function<String, T> converter;
     private Function<R, String> converterBack;
 
-    public GameServer(int pPort, Function<String, T> converter, Function<R, String> converterBack) {
+    public ServerConnector(int pPort, Function<String, T> converter, Function<R, String> converterBack) {
         super(pPort);
 
         clientIPs = new ArrayList<String>();

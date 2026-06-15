@@ -1,11 +1,11 @@
-package main.Client;
+package main.Server;
 
 public class Launch {
 
     public static void main(String[] args) throws Exception {
-        BlackJClient client = new BlackJClient();
+        BlackJSession blackjsession = new BlackJSession();
 
-        client.launchGame();
+        blackjsession.launchGame();
 
         System.out.println("client launched");
 

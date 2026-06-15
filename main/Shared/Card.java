@@ -1,11 +1,11 @@
 package main.Shared;
 
-class Card {
+public class Card {
 
     String type;
     int value;
 
-    Card(String pType, int pVal) {
+    public Card(String pType, int pVal) {
         value = pVal;
         type = pType;
     }

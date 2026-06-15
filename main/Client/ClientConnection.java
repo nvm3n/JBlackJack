@@ -1,14 +1,14 @@
 package main.Client;
 import java.util.function.Function;
 
-public class GameClient<T, R> extends Client {
+public class ClientConnection<T, R> extends Client {
 
     private T lastMessage;
 
     private Function<String, T> converter;
     private Function<R, String> converterBack;
 
-    public GameClient(String pServerIP, int pServerPort, Function<String, T> converter,
+    public ClientConnection(String pServerIP, int pServerPort, Function<String, T> converter,
             Function<R, String> converterBack) {
         super(pServerIP, pServerPort);
 
