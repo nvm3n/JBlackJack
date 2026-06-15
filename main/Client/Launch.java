@@ -1,4 +1,4 @@
-package main.Client.Java;
+package main.Client;
 public class Launch{
 
     public static void main(String[] args) throws Exception{

@@ -1,48 +1,14 @@
-package main.Client.Java;
+package main.Client;
 
+import main.Shared.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Random;
 import javax.swing.*;
 
 public class Client {
 
-    private class Card{
-        String type;
-        int value;
-
-        Card(String pType, int pVal) {
-            value = pVal;
-            type = pType;
-        }
-
-        public int getValue(){
-            if (value == 1){
-                return 11;
-            }else if(value >= 11){
-                return 10;
-            }else{
-                return value;
-            }
-        }
-
-        public boolean isAce(){
-            return value == 1;
-        }
-
-        public String toString() {
-            return type + " " + value;
-        }
-
-        public String getImgPath() {
-            return "./cardsprites/" + toString() + ".png";
-        }
-    }
-
-    ArrayList<Card> deck;
-    Random random = new Random();
-
+    Game game = new Game();
 
     //dealer
     Card hiddenCard;
@@ -190,20 +156,17 @@ public class Client {
     }
 
     public void launchGame() {
-        buildDeck();
-        shuffleDeck();
-
 
         //dealerhand
         dHand = new ArrayList<Card>();
         dSum = 0;
         dAceCount = 0;
 
-        hiddenCard = deck.remove(deck.size()-1);
+        hiddenCard = game.drawcard();
         dSum += hiddenCard.getValue();
         dAceCount += hiddenCard.isAce() ? 1 : 0;
 
-        Card card = deck.remove(deck.size()-1);
+        Card card = game.drawcard();
         dSum += card.getValue();
         dAceCount += card.isAce() ? 1 : 0;
         dHand.add(card);
@@ -220,7 +183,7 @@ public class Client {
         pAceCount = 0;
 
         for (int i = 0; i < 2; i++){
-            card = deck.remove(deck.size()-1);
+            card = game.drawcard();
             pSum += card.getValue();
             pAceCount += card.isAce() ? 1 :0;
             pHand.add(card);
@@ -230,41 +193,6 @@ public class Client {
         System.out.println(pHand);
         System.out.println(pSum);
         System.out.println(pAceCount);
-    }
-
-
-
-
-    //deck creation
-    public void buildDeck() {
-        deck = new ArrayList<Card>();
-        String[] types = {"Hearts", "Spades", "Diamonds", "Clubs"};
-        int[] values = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-
-        for (int IType = 0; IType<types.length; IType++){
-            for (int IVal = 0; IVal<values.length; IVal++){
-                Card card = new Card(types[IType], values[IVal]);
-                deck.add(card);
-            }
-  
-
-        }
-
-        System.out.println("Deck:");
-        System.out.println(deck);
-    }
-
-    public void shuffleDeck() {
-        for (int i = 0; i < deck.size(); i++){
-            int j = random.nextInt(deck.size());
-            Card currCard = deck.get(i);
-            Card randomCard = deck.get(j);
-            deck.set(i, randomCard);
-            deck.set(j, currCard);
-        }
-
-        System.out.println("Shuffled:");
-        System.out.println(deck);
     }
     
     public int psumreduce(){
@@ -297,7 +225,7 @@ public class Client {
         nextButton.setVisible(true);
                 
         while (dSum < 17 ){
-            Card card = deck.remove(deck.size()-1);
+            Card card = game.drawcard();
             dSum += card.getValue();
             dAceCount += card.isAce()?1 : 0;
             dHand.add(card);
@@ -308,7 +236,7 @@ public class Client {
 
     public void hit(){
         System.out.println("clientplayer hit");
-        Card card = deck.remove(deck.size()-1);
+        Card card = game.drawcard();
         pSum += card.getValue();
         pAceCount += card.isAce()? 1 : 0;
         pHand.add(card);
