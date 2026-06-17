@@ -3,23 +3,11 @@ package main.Client;
 import main.Shared.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import javax.swing.*;
 
 public class Client {
 
     Game game = new Game();
-
-    //dealer
-    Card hiddenCard;
-    ArrayList<Card> dHand;
-    int dSum;
-    int dAceCount;
-
-    //Client player
-    ArrayList<Card> pHand;
-    int pSum;
-    int pAceCount;
 
     //game window
     int boardWidth = 600;
@@ -41,38 +29,37 @@ public class Client {
 
                 //draw hidden card
                 Image hiddenCardImg = new ImageIcon(getClass().getResource("./cardsprites/Card Back 1.png")).getImage();
-                while(!standButton.isEnabled()) {
+                if(game.getOngoingState() == false) {
                     try{
-                    hiddenCardImg = new ImageIcon(getClass().getResource(hiddenCard.getImgPath())).getImage();                       
+                    hiddenCardImg = new ImageIcon(getClass().getResource(game.getHiddenCard().getImgPath())).getImage();                       
                     }catch(Exception e){
                         System.out.println(e);
                     }
-
                 }
                 int x = 60;
                 System.out.println("dhand xcoord calc h: " + x);
                 g.drawImage(hiddenCardImg, 60, 60, cardWidth, cardHeight, null);
 
                 //draw dealer hand
-                for (int i = 0; i < dHand.size(); i++){
-                    Card card = dHand.get(i);
+                for (int i = 0; i < game.getDHand().size(); i++){
+                    Card card = game.getDHand().get(i);
                     Image cardImg = new ImageIcon(getClass().getResource(card.getImgPath())).getImage();
                     x = 60 + spacing * (i+1);
                     System.out.println("dhand xcoord calc" + i + ": "+ x);
                     g.drawImage(cardImg, x, 60, cardWidth, cardHeight, null);
                 }
                 //draw clientplayer hand
-                for (int i = 0; i < pHand.size(); i++){
-                    Card card = pHand.get(i);
+                for (int i = 0; i < game.getPHand().size(); i++){
+                    Card card = game.getPHand().get(i);
                     Image cardImg = new ImageIcon(getClass().getResource(card.getImgPath())).getImage();
                     x = 60 + spacing * i;
                     System.out.println("phand xcoord calc" + i + ": " + x);
                     g.drawImage(cardImg, x , 320, cardWidth, cardHeight, null);
                 }
 
-                if(!standButton.isEnabled()){
-                    dSum = dsumreduce();
-                    pSum = psumreduce();
+                if(game.getOngoingState() == false){
+                    int dSum = game.dsumreduce();
+                    int pSum = game.psumreduce();
                     System.out.println("stand: ");
                     System.out.println(dSum);
                     System.out.println(pSum);
@@ -95,7 +82,9 @@ public class Client {
                     g.drawString(message, 170, 300);
                 }
 
-
+                if(!standButton.isEnabled() == true && game.getOngoingState() == true){
+                    gamePanel.repaint();
+                }
 
             }catch (Exception e) {
                 e.printStackTrace();
@@ -111,7 +100,7 @@ public class Client {
 
 
     Client() {
-        launchGame();
+        game.launchGame();
         frame.setVisible(true);
         frame.setSize(boardWidth, boadHeight);
         frame.setLocationRelativeTo(null);
@@ -160,111 +149,34 @@ public class Client {
         gamePanel.repaint();
     }
 
-    public void launchGame() {
-
-        //dealerhand
-        dHand = new ArrayList<Card>();
-        dSum = 0;
-        dAceCount = 0;
-
-        hiddenCard = game.drawcard();
-        dSum += hiddenCard.getValue();
-        dAceCount += hiddenCard.isAce() ? 1 : 0;
-
-        Card card = game.drawcard();
-        dSum += card.getValue();
-        dAceCount += card.isAce() ? 1 : 0;
-        dHand.add(card);
-
-        System.out.println("Dealer:");
-        System.out.println(hiddenCard);
-        System.out.println(dHand);
-        System.out.println(dSum);
-        System.out.println(dAceCount);
-
-        //playerhand
-        pHand = new ArrayList<Card>();
-        pSum = 0;
-        pAceCount = 0;
-
-        for (int i = 0; i < 2; i++){
-            card = game.drawcard();
-            pSum += card.getValue();
-            pAceCount += card.isAce() ? 1 :0;
-            pHand.add(card);
-        }
-
-        System.out.println("Player:");
-        System.out.println(pHand);
-        System.out.println(pSum);
-        System.out.println(pAceCount);
-    }
-    
-    public int psumreduce(){
-        while (pSum > 21 && pAceCount > 0){
-            pSum -= 10;
-            pAceCount -= 1;
-            System.out.println("pReduced");
-        }
-        System.out.println("pSum: " + pSum);
-        return pSum;
-    }
-
-    public int dsumreduce(){
-        while (dSum > 21 && dAceCount > 0){
-            dSum -= 10;
-            dAceCount -= 1;
-            System.out.println("dReduced");
-        }
-        System.out.println("dSum: " + dSum);
-        return dSum;
-    }
-
     public void stand(){
         System.out.println("clientplayer stand");
+        game.stand();
         hitButton.setEnabled(false);
         hitButton.setVisible(false);
         standButton.setEnabled(false);
         standButton.setVisible(false);
         nextButton.setEnabled(true);
         nextButton.setVisible(true);
-                
-        while (dSum < 17 ){
-            Card card = game.drawcard();
-            dSum += card.getValue();
-            dAceCount += card.isAce()?1 : 0;
-            dHand.add(card);
-        }
 
         gamePanel.repaint();
     }
 
     public void hit(){
         System.out.println("clientplayer hit");
-        Card card = game.drawcard();
-        pSum += card.getValue();
-        pAceCount += card.isAce()? 1 : 0;
-        pHand.add(card);
-        if (psumreduce() > 21){
-            System.out.println("pSum: " + pSum);
-            stand();
-        }
-
+        game.hit();
         gamePanel.repaint();
     }
 
     public void next(){
-        pHand.clear();
-		dHand.clear();
-		gamePanel.repaint();
-		hitButton.setEnabled(true);
+        game.next();
+        gamePanel.repaint();
+        hitButton.setEnabled(true);
         hitButton.setVisible(true);
-		standButton.setEnabled(true);
+        standButton.setEnabled(true);
         standButton.setVisible(true);
-		nextButton.setEnabled(false);
+        nextButton.setEnabled(false);
         nextButton.setVisible(false);
-		launchGame();
     }
-
 }
 
