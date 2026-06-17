@@ -41,8 +41,13 @@ public class Client {
 
                 //draw hidden card
                 Image hiddenCardImg = new ImageIcon(getClass().getResource("./cardsprites/Card Back 1.png")).getImage();
-                if(!standButton.isEnabled()) {
-                    hiddenCardImg = new ImageIcon(getClass().getResource(hiddenCard.getImgPath())).getImage();
+                while(!standButton.isEnabled()) {
+                    try{
+                    hiddenCardImg = new ImageIcon(getClass().getResource(hiddenCard.getImgPath())).getImage();                       
+                    }catch(Exception e){
+                        System.out.println(e);
+                    }
+
                 }
                 int x = 60;
                 System.out.println("dhand xcoord calc h: " + x);

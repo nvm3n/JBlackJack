@@ -6,6 +6,21 @@ import java.util.Random;
 
 public class Game{
 
+    ArrayList<Card> deck;
+    Random random = new Random();
+
+    //dealer
+    Card hiddenCard;
+    ArrayList<Card> dHand;
+    int dSum;
+    int dAceCount;
+
+    //Client player
+    boolean playerStanding;
+    ArrayList<Card> pHand;
+    int pSum;
+    int pAceCount;
+
     Game(){
         buildDeck();
         shuffleDeck();
@@ -46,7 +61,22 @@ public class Game{
         System.out.println("Shuffled:");
         System.out.println(deck);
     }
-    ArrayList<Card> deck;
-    Random random = new Random();
+
+    public ArrayList<Card> getPHand(){
+        return pHand;
+    }
+
+    public ArrayList<Card> getDHand(){
+        return dHand;
+    }
+
+    public Card getHiddenCard(){
+        if (playerStanding == true){
+            return hiddenCard;
+        }
+        return null;
+    }
+
+
     
 }
