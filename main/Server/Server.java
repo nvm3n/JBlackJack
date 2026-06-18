@@ -1,6 +1,9 @@
 package main.Server;
-import main.Shared.*;
+
 import java.net.*;
+
+import main.Shared.List;
+
 import java.io.*;
 
 /**
@@ -13,11 +16,14 @@ import java.io.*;
  * <p>
  * Objekte von Unterklassen der abstrakten Klasse Server ermoeglichen das
  * Anbieten von Serverdiensten, so dass Clients Verbindungen zum Server mittels
- * TCP/IP-Protokoll aufbauen koennen. Zur Vereinfachung finden Nachrichtenversand
- * und -empfang zeilenweise statt, d. h., beim Senden einer Zeichenkette wird ein
+ * TCP/IP-Protokoll aufbauen koennen. Zur Vereinfachung finden
+ * Nachrichtenversand
+ * und -empfang zeilenweise statt, d. h., beim Senden einer Zeichenkette wird
+ * ein
  * Zeilentrenner ergaenzt und beim Empfang wird dieser entfernt.
  * Verbindungsannahme, Nachrichtenempfang und Verbindungsende geschehen
- * nebenlaeufig. Auf diese Ereignisse muss durch Ueberschreiben der entsprechenden
+ * nebenlaeufig. Auf diese Ereignisse muss durch Ueberschreiben der
+ * entsprechenden
  * Ereignisbehandlungsmethoden reagiert werden. Es findet nur eine rudimentaere
  * Fehlerbehandlung statt, so dass z.B. Verbindungsabbrueche nicht zu einem
  * Programmabbruch fuehren. Einmal unterbrochene oder getrennte Verbindungen
@@ -28,17 +34,16 @@ import java.io.*;
  * @version 30.08.2016
  */
 
-
-public abstract class ServerConnection{
+public abstract class Server {
   private NewConnectionHandler connectionHandler;
   private List<ClientMessageHandler> messageHandlers;
 
-  private class NewConnectionHandler extends Thread{
+  private class NewConnectionHandler extends Thread {
     private ServerSocket serverSocket;
     private boolean active;
 
-    public NewConnectionHandler(int pPort){
-      try{
+    public NewConnectionHandler(int pPort) {
+      try {
         serverSocket = new ServerSocket(pPort);
         start();
         active = true;
@@ -51,12 +56,12 @@ public abstract class ServerConnection{
     public void run() {
       while (active) {
         try {
-          //Warten auf Verbdinungsversuch durch Client:
+          // Warten auf Verbdinungsversuch durch Client:
           Socket clientSocket = serverSocket.accept();
           // Eingehende Nachrichten vom neu verbundenen Client werden
           // in einem eigenen Thread empfangen:
           addNewClientMessageHandler(clientSocket);
-          processNewConnection(clientSocket.getInetAddress().getHostAddress(),clientSocket.getPort());
+          processNewConnection(clientSocket.getInetAddress().getHostAddress(), clientSocket.getPort());
         }
 
         catch (IOException e) {
@@ -70,11 +75,11 @@ public abstract class ServerConnection{
 
     public void close() {
       active = false;
-      if(serverSocket != null)
+      if (serverSocket != null)
         try {
           serverSocket.close();
         } catch (IOException e) {
-          /* 
+          /*
            * Befindet sich der ServerSocket im accept()-Wartezustand oder wurde
            * er bereits geschlossen, geschieht nichts.
            */
@@ -104,35 +109,36 @@ public abstract class ServerConnection{
       }
 
       public String receive() {
-        if(fromClient != null)
+        if (fromClient != null)
           try {
             return fromClient.readLine();
-          } catch (IOException e) {}
-        return(null);
+          } catch (IOException e) {
+          }
+        return (null);
       }
 
       public void send(String pMessage) {
-        if(toClient != null) {
+        if (toClient != null) {
           toClient.println(pMessage);
         }
       }
 
       public String getClientIP() {
-        if(clientSocket != null)
-          return(clientSocket.getInetAddress().getHostAddress());
+        if (clientSocket != null)
+          return (clientSocket.getInetAddress().getHostAddress());
         else
-          return(null); //Gemaess Java-API Rueckgabe bei nicht-verbundenen Sockets
+          return (null); // Gemaess Java-API Rueckgabe bei nicht-verbundenen Sockets
       }
 
       public int getClientPort() {
-        if(clientSocket != null)
-          return(clientSocket.getPort());
+        if (clientSocket != null)
+          return (clientSocket.getPort());
         else
-          return(0); //Gemaess Java-API Rueckgabe bei nicht-verbundenen Sockets
+          return (0); // Gemaess Java-API Rueckgabe bei nicht-verbundenen Sockets
       }
 
       public void close() {
-        if(clientSocket != null)
+        if (clientSocket != null)
           try {
             clientSocket.close();
           } catch (IOException e) {
@@ -147,7 +153,7 @@ public abstract class ServerConnection{
 
     private ClientMessageHandler(Socket pClientSocket) {
       socketWrapper = new ClientSocketWrapper(pClientSocket);
-      if(pClientSocket!=null) {
+      if (pClientSocket != null) {
         start();
         active = true;
       } else {
@@ -162,7 +168,8 @@ public abstract class ServerConnection{
         if (message != null)
           processMessage(socketWrapper.getClientIP(), socketWrapper.getClientPort(), message);
         else {
-          ClientMessageHandler aMessageHandler = findClientMessageHandler(socketWrapper.getClientIP(), socketWrapper.getClientPort());
+          ClientMessageHandler aMessageHandler = findClientMessageHandler(socketWrapper.getClientIP(),
+              socketWrapper.getClientPort());
           if (aMessageHandler != null) {
             aMessageHandler.close();
             removeClientMessageHandler(aMessageHandler);
@@ -173,42 +180,42 @@ public abstract class ServerConnection{
     }
 
     public void send(String pMessage) {
-      if(active)
+      if (active)
         socketWrapper.send(pMessage);
     }
 
     public void close() {
-      if(active) {
-        active=false;
+      if (active) {
+        active = false;
         socketWrapper.close();
       }
     }
 
     public String getClientIP() {
-      return(socketWrapper.getClientIP());
+      return (socketWrapper.getClientIP());
     }
 
     public int getClientPort() {
-      return(socketWrapper.getClientPort());
+      return (socketWrapper.getClientPort());
     }
 
   }
 
-  public ServerConnection(int pPort) {   
+  public Server(int pPort) {
     connectionHandler = new NewConnectionHandler(pPort);
     messageHandlers = new List<ClientMessageHandler>();
   }
 
   public boolean isOpen() {
-    return(connectionHandler.active);
+    return (connectionHandler.active);
   }
 
   public boolean isConnectedTo(String pClientIP, int pClientPort) {
     ClientMessageHandler aMessageHandler = findClientMessageHandler(pClientIP, pClientPort);
     if (aMessageHandler != null)
-      return(aMessageHandler.active);
+      return (aMessageHandler.active);
     else
-      return(false);
+      return (false);
   }
 
   public void send(String pClientIP, int pClientPort, String pMessage) {
@@ -218,11 +225,9 @@ public abstract class ServerConnection{
   }
 
   public void sendToAll(String pMessage) {
-    synchronized(messageHandlers)
-    {
+    synchronized (messageHandlers) {
       messageHandlers.toFirst();
-      while (messageHandlers.hasAccess())
-      {
+      while (messageHandlers.hasAccess()) {
         messageHandlers.getContent().send(pMessage);
         messageHandlers.next();
       }
@@ -242,7 +247,7 @@ public abstract class ServerConnection{
   public void close() {
     connectionHandler.close();
 
-    synchronized(messageHandlers) {
+    synchronized (messageHandlers) {
       ClientMessageHandler aMessageHandler;
       messageHandlers.toFirst();
       while (messageHandlers.hasAccess()) {
@@ -262,16 +267,16 @@ public abstract class ServerConnection{
   public abstract void processClosingConnection(String pClientIP, int pClientPort);
 
   private void addNewClientMessageHandler(Socket pClientSocket) {
-    synchronized(messageHandlers) {
-      messageHandlers.append(new ServerConnection.ClientMessageHandler(pClientSocket));
+    synchronized (messageHandlers) {
+      messageHandlers.append(new Server.ClientMessageHandler(pClientSocket));
     }
   }
 
   private void removeClientMessageHandler(ClientMessageHandler pClientMessageHandler) {
-    synchronized(messageHandlers) {
+    synchronized (messageHandlers) {
       messageHandlers.toFirst();
       while (messageHandlers.hasAccess()) {
-        if (pClientMessageHandler ==  messageHandlers.getContent()) {
+        if (pClientMessageHandler == messageHandlers.getContent()) {
           messageHandlers.remove();
           return;
         } else
@@ -281,12 +286,12 @@ public abstract class ServerConnection{
   }
 
   private ClientMessageHandler findClientMessageHandler(String pClientIP, int pClientPort) {
-    synchronized(messageHandlers) {
+    synchronized (messageHandlers) {
       ClientMessageHandler aMessageHandler;
       messageHandlers.toFirst();
 
       while (messageHandlers.hasAccess()) {
-        aMessageHandler = messageHandlers.getContent();       
+        aMessageHandler = messageHandlers.getContent();
         if (aMessageHandler.getClientIP().equals(pClientIP) && aMessageHandler.getClientPort() == pClientPort)
           return (aMessageHandler);
         messageHandlers.next();

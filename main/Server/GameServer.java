@@ -1,34 +1,51 @@
 package main.Server;
-import main.Shared.*;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.*;
 
-public class ServerConnector<T, R> extends ServerConnection {
+import main.Shared.PacketContext;
+import main.Shared.Queue;
+
+public class GameServer<T, R> extends Server {
 
     private ArrayList<String> clientIPs;
-    private ArrayList<Integer> clientPorts;
-    private ArrayList<T> lastReceivedMessages;
+    private Map<Integer, Integer> clientPorts;
+
+    private Queue<PacketContext<T>> receivedMessages;
     private Queue<Integer> closedConnectionIds;
     private Function<String, T> converter;
     private Function<R, String> converterBack;
 
-    public ServerConnector(int pPort, Function<String, T> converter, Function<R, String> converterBack) {
+    public GameServer(int pPort, Function<String, T> converter, Function<R, String> converterBack) {
         super(pPort);
 
         clientIPs = new ArrayList<String>();
-        clientPorts = new ArrayList<Integer>();
-        lastReceivedMessages = new ArrayList<T>();
+        clientPorts = new HashMap<Integer, Integer>();
+        receivedMessages = new Queue<PacketContext<T>>();
 
         this.converter = converter;
         this.converterBack = converterBack;
     }
 
     public void sendMessage(int id, R message) {
-        send(clientIPs.get(id), clientPorts.get(id), converterBack.apply(message));
+        try {
+            System.out.println(converterBack.apply(message));
+            send(clientIPs.get(id), clientPorts.get(id), converterBack.apply(message));
+        } catch (Exception e) {
+            System.out.println("converting outgoing message failed " + e);
+        }
     }
 
-    public T getLatestMessage(int id) {
-        return lastReceivedMessages.get(id);
+    public PacketContext<T> getLatestMessage() {
+        PacketContext<T> message = receivedMessages.front();
+        receivedMessages.dequeue();
+        return message;
+    }
+
+    public boolean messageAvailable() {
+        return !receivedMessages.isEmpty();
     }
 
     public void closeConnection(int id) {
@@ -36,7 +53,6 @@ public class ServerConnector<T, R> extends ServerConnection {
         closeConnection(clientIPs.get(id), clientPorts.get(id));
         clientIPs.remove(id);
         clientPorts.remove(id);
-        lastReceivedMessages.remove(id);
         closedConnectionIds.enqueue(id);
     }
 
@@ -61,13 +77,16 @@ public class ServerConnector<T, R> extends ServerConnection {
     public void processNewConnection(String pClientIP, int pClientPort) {
         clientIPs.add(pClientIP);
         int id = clientIPs.indexOf(pClientIP);
-        clientPorts.add(id, pClientPort);
-
+        clientPorts.put(id, pClientPort);
     }
 
     public void processMessage(String pClientIP, int pClientPort, String pMessage) {
         int id = clientIPs.indexOf(pClientIP);
-        lastReceivedMessages.set(id, converter.apply(pMessage));
+        try {
+            receivedMessages.enqueue(new PacketContext<T>(converter.apply(pMessage), id));
+        } catch (Exception e) {
+            System.out.println("converting incoming message failed");
+        }
     }
 
     public void processClosingConnection(String pClientIP, int pClientPort) {
