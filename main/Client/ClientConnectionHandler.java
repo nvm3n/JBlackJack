@@ -30,7 +30,7 @@ import java.net.Socket;
  * @version 30.08.2016
  */
 
-public abstract class Client{
+public abstract class ClientConnectionHandler{
   private MessageHandler messageHandler;
 
   private class MessageHandler extends Thread{
@@ -113,7 +113,7 @@ public abstract class Client{
     }
   }
 
-  public Client(String pServerIP, int pServerPort){
+  public ClientConnectionHandler(String pServerIP, int pServerPort){
     messageHandler = new MessageHandler(pServerIP, pServerPort);
   }
 

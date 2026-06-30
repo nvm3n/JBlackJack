@@ -21,6 +21,7 @@ public class GameState {
         public ArrayList<Card> pHand;
         public int pSum;
         public int pAceCount;
+        public boolean standing;
     }
 
     public GameState() {
@@ -72,6 +73,8 @@ public class GameState {
             sb.append(p.pSum);
             sb.append("<");
             sb.append(p.pAceCount);
+            sb.append("<");
+            sb.append(p.standing ? "true" : "false");
             if (i < gameState.players.size() - 1) {
                 sb.append(":");
             }
@@ -134,6 +137,13 @@ public class GameState {
                     // Parse player sum and ace count
                     p.pSum = Integer.parseInt(individualPlayerParts[2]);
                     p.pAceCount = Integer.parseInt(individualPlayerParts[3]);
+
+                    // Parse player standing (backwards compatible - default to false if not present)
+                    if (individualPlayerParts.length > 4) {
+                        p.standing = Boolean.parseBoolean(individualPlayerParts[4]);
+                    } else {
+                        p.standing = false;
+                    }
 
                     gameState.players.add(p);
 

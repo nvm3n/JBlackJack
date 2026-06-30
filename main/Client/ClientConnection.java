@@ -2,7 +2,7 @@ package main.Client;
 
 import java.util.function.Function;
 
-public class ClientConnection<T, R> extends Client {
+public class ClientConnection<T, R> extends ClientConnectionHandler {
 
     private T lastMessage;
 

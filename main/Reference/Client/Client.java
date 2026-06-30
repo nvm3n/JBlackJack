@@ -1,103 +1,79 @@
-package main.Client;
+package main.Reference.Client;
+
 import main.Shared.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import javax.swing.*;
 
-public class BlackJClient {
-    // TODO GANZ GANZ Viel
+public class Client {
 
-    // wie du es gelassen hast nur das alles was vom server kommt in den gameState
-    // getan wurde und es den client zum connecten gibt, du kannst davon ausgehen
-    // das nach jedem zug irgendwann ein paket mit neuem status kommt bevor es
-    // weitergeht. mit der methode isConnected vom Gameclient kannst du außerdem
-    // sicherstellen das du die verbindung nicht verloren hast. Bis auf den
-    // Konstruktor habe ich nichts verändert und es funktioniert noch nicht mit
-    // Gamestate, viel Spaß!
-    // MFG Lorentz
+    Game game = new Game();
 
-
-    GameState gameState;
-    ClientConnection<GameState, String> gameClient;
-
-    public boolean hiddenCard;
-    public ArrayList<Card> dHand;
-    public int dSum;
-    public int dAceCount;
-
-    String playerName;
-
-    private Player self;
-
-    public class Player {
-        public String name;
-        public ArrayList<Card> pHand;
-        public int self.pSum;
-        public int pAceCount;
-    }
-
-    // game window
+    //game window
     int boardWidth = 600;
     int boadHeight = 600;
 
-    int cardWidth = 64 * 2;
-    int cardHeight = 96 * 2;
+    int cardWidth = 64*2;
+    int cardHeight = 96*2;
 
     JFrame frame = new JFrame("Black Jack");
-    JPanel gamePanel = new JPanel() {
+    JPanel gamePanel = new JPanel(){
         @Override
-        public void paintComponent(Graphics g) {
+        public void paintComponent(Graphics g){
             super.paintComponent(g);
-
+            
             try {
                 System.out.println("Drawing paint component");
                 int spacing = cardWidth - 85;
                 System.out.println("Spacing: " + spacing);
 
-                // draw hidden card
+                //draw hidden card
                 Image hiddenCardImg = new ImageIcon(getClass().getResource("./cardsprites/Card Back 1.png")).getImage();
-                if (!standButton.isEnabled()) {
-                    hiddenCardImg = new ImageIcon(getClass().getResource(hiddenCard.getImgPath())).getImage();
+                if(game.getOngoingState() == false) {
+                    try{
+                    hiddenCardImg = new ImageIcon(getClass().getResource(game.getHiddenCard().getImgPath())).getImage();                       
+                    }catch(Exception e){
+                        System.out.println(e);
+                    }
                 }
                 int x = 60;
                 System.out.println("dhand xcoord calc h: " + x);
                 g.drawImage(hiddenCardImg, 60, 60, cardWidth, cardHeight, null);
 
-                // draw dealer hand
-                for (int i = 0; i < dHand.size(); i++) {
-                    Card card = dHand.get(i);
+                //draw dealer hand
+                for (int i = 0; i < game.getDHand().size(); i++){
+                    Card card = game.getDHand().get(i);
                     Image cardImg = new ImageIcon(getClass().getResource(card.getImgPath())).getImage();
-                    x = 60 + spacing * (i + 1);
-                    System.out.println("dhand xcoord calc" + i + ": " + x);
+                    x = 60 + spacing * (i+1);
+                    System.out.println("dhand xcoord calc" + i + ": "+ x);
                     g.drawImage(cardImg, x, 60, cardWidth, cardHeight, null);
                 }
-                // draw clientplayer hand
-                for (int i = 0; i < pHand.size(); i++) {
-                    Card card = pHand.get(i);
+                //draw clientplayer hand
+                for (int i = 0; i < game.getPHand().size(); i++){
+                    Card card = game.getPHand().get(i);
                     Image cardImg = new ImageIcon(getClass().getResource(card.getImgPath())).getImage();
                     x = 60 + spacing * i;
                     System.out.println("phand xcoord calc" + i + ": " + x);
-                    g.drawImage(cardImg, x, 320, cardWidth, cardHeight, null);
+                    g.drawImage(cardImg, x , 320, cardWidth, cardHeight, null);
                 }
 
-                if (!standButton.isEnabled()) {
-                    dSum = dsumreduce();
-                    self.self.pSum = self.psumreduce();
+                if(game.getOngoingState() == false){
+                    int dSum = game.dsumreduce();
+                    int pSum = game.psumreduce();
                     System.out.println("stand: ");
                     System.out.println(dSum);
-                    System.out.println(self.self.pSum);
-
+                    System.out.println(pSum);
+                    
                     String message = "";
-                    if (self.pSum > 21) {
+                    if (pSum > 21){
                         message = "Dealer wins";
-                    } else if (dSum > 21) {
+                    }else if(dSum > 21){
                         message = "Player wins";
-                    } else if (self.pSum == dSum) {
+                    }else if(pSum == dSum){
                         message = "Push";
-                    } else if (self.pSum > dSum) {
+                    }else if(pSum > dSum){
                         message = "Player wins";
-                    } else {
+                    }else{
                         message = "Dealer wins";
                     }
 
@@ -106,7 +82,11 @@ public class BlackJClient {
                     g.drawString(message, 170, 300);
                 }
 
-            } catch (Exception e) {
+                if(!standButton.isEnabled() == true && game.getOngoingState() == true){
+                    gamePanel.repaint();
+                }
+
+            }catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -116,20 +96,21 @@ public class BlackJClient {
     JButton standButton = new JButton("Stand");
     JButton nextButton = new JButton("Next Hand");
 
-    public BlackJClient(String ServerIP, int Port) {
-        gameClient = new ClientConnection<GameState, String>(ServerIP, Port,
-                (String state) -> GameState.convertFromString(state), (String s) -> s);
 
+
+
+    Client() {
+        game.launchGame();
         frame.setVisible(true);
         frame.setSize(boardWidth, boadHeight);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        // frame.setUndecorated(true);
+        //frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //frame.setUndecorated(true);
 
         gamePanel.setLayout(new BorderLayout());
-        gamePanel.setBackground(new Color(6, 69, 7));
+        gamePanel.setBackground(new Color(6, 69,7));
         frame.add(gamePanel);
 
         hitButton.setFocusable(false);
@@ -139,7 +120,7 @@ public class BlackJClient {
         standButton.setFocusable(false);
         standButton.setVisible(true);
         inputPanel.add(standButton);
-
+        
         nextButton.setFocusable(false);
         nextButton.setEnabled(false);
         nextButton.setVisible(false);
@@ -148,28 +129,29 @@ public class BlackJClient {
         frame.add(inputPanel, BorderLayout.SOUTH);
 
         hitButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e){
                 hit();
             }
         });
 
         standButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e){
                 stand();
             }
         });
 
         nextButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                next();
-            }
-        });
+			public void actionPerformed(ActionEvent e) {
+				next();
+			}
+		});
 
         gamePanel.repaint();
     }
 
-    public void stand() {
+    public void stand(){
         System.out.println("clientplayer stand");
+        game.stand();
         hitButton.setEnabled(false);
         hitButton.setVisible(false);
         standButton.setEnabled(false);
@@ -177,22 +159,17 @@ public class BlackJClient {
         nextButton.setEnabled(true);
         nextButton.setVisible(true);
 
-        //TODO: implement client sending stand to server and waiting for response
-
         gamePanel.repaint();
     }
 
-    public void hit() {
+    public void hit(){
         System.out.println("clientplayer hit");
-        
-        //TODO: implement client sending hit to server and waiting for response
-
+        game.hit();
         gamePanel.repaint();
     }
 
-    public void next() {
-        self.pHand.clear();
-        dHand.clear();
+    public void next(){
+        game.next();
         gamePanel.repaint();
         hitButton.setEnabled(true);
         hitButton.setVisible(true);
@@ -200,6 +177,6 @@ public class BlackJClient {
         standButton.setVisible(true);
         nextButton.setEnabled(false);
         nextButton.setVisible(false);
-        launchGame();
     }
 }
+

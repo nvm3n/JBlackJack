@@ -34,7 +34,7 @@ import java.io.*;
  * @version 30.08.2016
  */
 
-public abstract class Server {
+public abstract class ServerConnectionHandler {
   private NewConnectionHandler connectionHandler;
   private List<ClientMessageHandler> messageHandlers;
 
@@ -201,7 +201,7 @@ public abstract class Server {
 
   }
 
-  public Server(int pPort) {
+  public ServerConnectionHandler(int pPort) {
     connectionHandler = new NewConnectionHandler(pPort);
     messageHandlers = new List<ClientMessageHandler>();
   }
@@ -268,7 +268,7 @@ public abstract class Server {
 
   private void addNewClientMessageHandler(Socket pClientSocket) {
     synchronized (messageHandlers) {
-      messageHandlers.append(new Server.ClientMessageHandler(pClientSocket));
+      messageHandlers.append(new ServerConnectionHandler.ClientMessageHandler(pClientSocket));
     }
   }
 
